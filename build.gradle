@@ -1,0 +1,21 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'org.cloudfoundry'
+version = '1.0.0-RELEASE'
+
+description = """Java UAA API Client"""
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+
+
+repositories {
+        
+     maven { url "http://repo.maven.apache.org/maven2" }
+}
+dependencies {
+    compile group: 'org.springframework.security.oauth', name: 'spring-security-oauth2', version:'2.0.4.RELEASE'
+    testCompile group: 'junit', name: 'junit', version:'4.12'
+}
