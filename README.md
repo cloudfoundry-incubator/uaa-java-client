@@ -7,7 +7,7 @@ to be an easy-to-use and feature complete Java library for these APIs.
 ## Quick Start
 
 ```
-$ git clone https://github.com/ECSTeam/uaa-java-client.git
+$ git clone https://github.com/cloudfoundry-incubator/uaa-java-client.git
 $ mvn package
 ```
 
