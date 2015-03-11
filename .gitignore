@@ -1,7 +1,8 @@
 target/
-
+.idea/
 .project
 .classpath
 .settings/
 .gradle/
 build/
+uaa-java-client.iml
