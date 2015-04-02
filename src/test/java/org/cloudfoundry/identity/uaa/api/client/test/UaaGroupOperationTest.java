@@ -19,11 +19,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 
-import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.api.group.UaaGroupOperations;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroup;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroupMember;
+import org.cloudfoundry.identity.uaa.api.group.model.ScimGroups;
+import org.cloudfoundry.identity.uaa.scim.ScimGroup;
+import org.cloudfoundry.identity.uaa.scim.ScimGroupMember;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -44,7 +44,7 @@ public class UaaGroupOperationTest extends AbstractOperationTest {
 	@Test
 	public void testGroupRetrieval() {
 		ignoreIfUaaNotRunning();
-		PagedResult<UaaGroup> groups = operations.getGroups(FilterRequestBuilder.showAll());
+		ScimGroups groups = operations.getGroups(FilterRequestBuilder.showAll());
 
 		assertNotNull(groups);
 
@@ -60,26 +60,26 @@ public class UaaGroupOperationTest extends AbstractOperationTest {
 		
 		String id = "marissa";
 
-		UaaGroup newGroup = new UaaGroup();
+		ScimGroup newGroup = new ScimGroup();
 		newGroup.setDisplayName("test.group");
 
-		UaaGroup createdGroup = operations.createGroup(newGroup);
+		ScimGroup createdGroup = operations.createGroup(newGroup);
 
 		assertNotNull(createdGroup.getId());
 
-		UaaGroup newNameGroup = operations.updateGroupName(createdGroup.getId(), "test.group.renamed");
+		ScimGroup newNameGroup = operations.updateGroupName(createdGroup.getId(), "test.group.renamed");
 
 		assertEquals(createdGroup.getId(), newNameGroup.getId());
 
-		UaaGroup updatedGroup = operations.addMember(newNameGroup.getId(), id);
+		ScimGroup updatedGroup = operations.addMember(newNameGroup.getId(), id);
 
-		Collection<UaaGroupMember> oldMembers = newNameGroup.getMembers();
-		Collection<UaaGroupMember> newMembers = updatedGroup.getMembers();
+		Collection<ScimGroupMember> oldMembers = newNameGroup.getMembers();
+		Collection<ScimGroupMember> newMembers = updatedGroup.getMembers();
 
 		assertTrue((oldMembers == null && newMembers.size() == 1) || (oldMembers.size() == newMembers.size() - 1));
 		assertEquals(newNameGroup.getId(), updatedGroup.getId());
 
-		UaaGroup shrunkGroup = operations.deleteMember(updatedGroup.getId(), id);
+		ScimGroup shrunkGroup = operations.deleteMember(updatedGroup.getId(), id);
 
 		oldMembers = newNameGroup.getMembers();
 		newMembers = shrunkGroup.getMembers();

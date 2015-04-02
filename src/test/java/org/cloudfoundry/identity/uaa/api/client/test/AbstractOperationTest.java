@@ -45,14 +45,16 @@ public abstract class AbstractOperationTest {
 			return;
 		}
 		finally {
+			String baseUrl = "http://localhost:8080/uaa";
+			
 			ClientCredentialsResourceDetails credentials = new ClientCredentialsResourceDetails();
-			credentials.setAccessTokenUri("http://localhost:8080/uaa/oauth/token");
-			credentials.setAuthenticationScheme(AuthenticationScheme.header);
+			credentials.setAccessTokenUri(baseUrl + "/oauth/token");
+//			credentials.setAuthenticationScheme(AuthenticationScheme.header);
 			credentials.setClientAuthenticationScheme(AuthenticationScheme.header);
 			credentials.setClientId("admin");
-			credentials.setClientId("adminsecret");
+			credentials.setClientSecret("adminsecret");
 			
-			connection = UaaConnectionFactory.getConnection(new URL("http://localhost:8080/uaa"), credentials);
+			connection = UaaConnectionFactory.getConnection(new URL(baseUrl), credentials);
 		}
 	}
 

@@ -25,6 +25,7 @@ import org.cloudfoundry.identity.uaa.api.user.UaaUserOperations;
 import org.cloudfoundry.identity.uaa.api.user.model.ScimUsers;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @see UaaUserOperations
@@ -53,7 +54,10 @@ public class UaaUserOperationsImpl implements UaaUserOperations {
 		Assert.hasText(user.getId());
 
 		// don't try to update the stuff we can't update here
-		user.setGroups(null);
+		if (!CollectionUtils.isEmpty(user.getGroups())) {
+			user.getGroups().clear();
+		}
+
 		user.setPassword(null);
 
 		return helper.putScimObject("/Users/{id}", user, ScimUser.class, user.getId());
