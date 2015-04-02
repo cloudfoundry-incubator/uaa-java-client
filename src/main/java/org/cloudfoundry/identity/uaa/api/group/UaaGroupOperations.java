@@ -13,11 +13,11 @@
  */
 package org.cloudfoundry.identity.uaa.api.group;
 
-import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroup;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroupMapping;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroupMappingIdentifier;
+import org.cloudfoundry.identity.uaa.api.group.model.ScimGroupExternalMembers;
+import org.cloudfoundry.identity.uaa.api.group.model.ScimGroups;
+import org.cloudfoundry.identity.uaa.scim.ScimGroup;
+import org.cloudfoundry.identity.uaa.scim.ScimGroupExternalMember;
 
 /**
  * Provides endpoints to the UAA group APIs specified <a
@@ -27,6 +27,10 @@ import org.cloudfoundry.identity.uaa.api.group.model.UaaGroupMappingIdentifier;
  *
  */
 public interface UaaGroupOperations {
+	public enum ScimGroupExternalMemberType {
+		groupId, displayName
+	}
+
 	/**
 	 * Create a group in the UAA database
 	 * 
@@ -34,7 +38,7 @@ public interface UaaGroupOperations {
 	 * @return The newly created group, with id and meta information
 	 * @see #addMember(String, String)
 	 */
-	public UaaGroup createGroup(UaaGroup group);
+	public ScimGroup createGroup(ScimGroup group);
 
 	/**
 	 * Update the display name in the UAA database
@@ -43,7 +47,7 @@ public interface UaaGroupOperations {
 	 * @param newName the new display name
 	 * @return the group with the specified group ID and the new Name
 	 */
-	public UaaGroup updateGroupName(String groupId, String newName);
+	public ScimGroup updateGroupName(String groupId, String newName);
 
 	/**
 	 * Add a member to the group
@@ -54,7 +58,7 @@ public interface UaaGroupOperations {
 	 * @see org.cloudfoundry.identity.uaa.api.user.model.UaaUser#getUserName()
 	 * @see org.cloudfoundry.identity.uaa.api.user.UaaUserOperations#getUserByName(String)
 	 */
-	public UaaGroup addMember(String groupId, String memberName);
+	public ScimGroup addMember(String groupId, String memberName);
 
 	/**
 	 * Remove a member from the group
@@ -65,7 +69,7 @@ public interface UaaGroupOperations {
 	 * @see org.cloudfoundry.identity.uaa.api.user.model.UaaUser#getUserName()
 	 * @see org.cloudfoundry.identity.uaa.api.user.UaaUserOperations#getUserByName(String)
 	 */
-	public UaaGroup deleteMember(String groupId, String memberName);
+	public ScimGroup deleteMember(String groupId, String memberName);
 
 	/**
 	 * Delete the group from the database. An exception will be thrown if the operation fails
@@ -81,7 +85,7 @@ public interface UaaGroupOperations {
 	 * @return The page of groups.
 	 * @see org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder
 	 */
-	public PagedResult<UaaGroup> getGroups(FilterRequest request);
+	public ScimGroups getGroups(FilterRequest request);
 
 	/**
 	 * Create a mapping from an external LDAP group to an internal UAA group. Only effective when UAA is configured with
@@ -94,7 +98,8 @@ public interface UaaGroupOperations {
 	 * @param externalGroupDn the DN of the LDAP group
 	 * @return the new mapping
 	 */
-	public UaaGroupMapping createGroupMapping(UaaGroupMappingIdentifier type, String identifier, String externalGroupDn);
+	public ScimGroupExternalMember createGroupMapping(ScimGroupExternalMemberType type, String identifier,
+			String externalGroupDn);
 
 	/**
 	 * Delete the group mapping. Only effective when UAA is configured with ldap/ldap-groups-map-to-scopes.xml (see <a
@@ -103,7 +108,7 @@ public interface UaaGroupOperations {
 	 * 
 	 * @param mapping the mapping to delete
 	 */
-	public void deleteGroupMapping(UaaGroupMapping mapping);
+	public void deleteGroupMapping(ScimGroupExternalMember mapping);
 
 	/**
 	 * List the group mappings with an optional filter. Only effective when UAA is configured with
@@ -115,5 +120,5 @@ public interface UaaGroupOperations {
 	 * @return the list of group mappings
 	 * @see org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder
 	 */
-	public PagedResult<UaaGroupMapping> getGroupMappings(FilterRequest request);
+	public ScimGroupExternalMembers getGroupMappings(FilterRequest request);
 }

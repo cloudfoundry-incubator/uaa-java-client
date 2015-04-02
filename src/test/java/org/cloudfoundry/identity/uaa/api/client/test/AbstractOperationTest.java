@@ -21,7 +21,8 @@ import java.net.URL;
 
 import org.cloudfoundry.identity.uaa.api.UaaConnectionFactory;
 import org.cloudfoundry.identity.uaa.api.common.UaaConnection;
-import org.cloudfoundry.identity.uaa.api.common.model.UaaCredentials;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
+import org.springframework.security.oauth2.common.AuthenticationScheme;
 
 /**
  * @author Josh Ghiloni
@@ -44,8 +45,16 @@ public abstract class AbstractOperationTest {
 			return;
 		}
 		finally {
-			UaaCredentials credentials = new UaaCredentials("admin", "adminsecret");
-			connection = UaaConnectionFactory.getConnection(new URL("http://localhost:8080/uaa"), credentials);
+			String baseUrl = "http://localhost:8080/uaa";
+			
+			ClientCredentialsResourceDetails credentials = new ClientCredentialsResourceDetails();
+			credentials.setAccessTokenUri(baseUrl + "/oauth/token");
+//			credentials.setAuthenticationScheme(AuthenticationScheme.header);
+			credentials.setClientAuthenticationScheme(AuthenticationScheme.header);
+			credentials.setClientId("admin");
+			credentials.setClientSecret("adminsecret");
+			
+			connection = UaaConnectionFactory.getConnection(new URL(baseUrl), credentials);
 		}
 	}
 

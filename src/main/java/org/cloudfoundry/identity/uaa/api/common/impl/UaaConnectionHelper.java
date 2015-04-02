@@ -24,10 +24,9 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cloudfoundry.identity.uaa.api.common.model.ScimMetaObject;
-import org.cloudfoundry.identity.uaa.api.common.model.UaaCredentials;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
+import org.cloudfoundry.identity.uaa.scim.ScimCore;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -43,12 +42,8 @@ import org.springframework.security.oauth2.client.token.AccessTokenProvider;
 import org.springframework.security.oauth2.client.token.AccessTokenProviderChain;
 import org.springframework.security.oauth2.client.token.DefaultAccessTokenRequest;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsAccessTokenProvider;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.security.oauth2.client.token.grant.implicit.ImplicitAccessTokenProvider;
-import org.springframework.security.oauth2.client.token.grant.implicit.ImplicitResourceDetails;
 import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordAccessTokenProvider;
-import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
-import org.springframework.security.oauth2.common.AuthenticationScheme;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -70,7 +65,7 @@ public class UaaConnectionHelper {
 
 	private URL url;
 
-	private UaaCredentials creds;
+	private OAuth2ProtectedResourceDetails creds;
 
 	private static final Log log = LogFactory.getLog(UaaConnectionHelper.class);
 
@@ -79,9 +74,9 @@ public class UaaConnectionHelper {
 	 * 
 	 * @param url
 	 * @param creds
-	 * @see org.cloudfoundry.identity.uaa.api.UaaConnectionFactory#getConnection(URL, UaaCredentials)
+	 * @see org.cloudfoundry.identity.uaa.api.UaaConnectionFactory#getConnection(URL, OAuth2ProtectedResourceDetails)
 	 */
-	public UaaConnectionHelper(URL url, UaaCredentials creds) {
+	public UaaConnectionHelper(URL url, OAuth2ProtectedResourceDetails creds) {
 		this.url = url;
 		this.creds = creds;
 	}
@@ -153,10 +148,10 @@ public class UaaConnectionHelper {
 	 * @return the response body
 	 * @see #exchange(HttpMethod, HttpHeaders, Object, String, Class, Object...)
 	 */
-	public <RequestType extends ScimMetaObject, ResponseType> ResponseType putScimObject(String uri, RequestType body,
+	public <RequestType extends ScimCore, ResponseType> ResponseType putScimObject(String uri, RequestType body,
 			Class<ResponseType> responseType, Object... uriVariables) {
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("if-match", body.getMeta().get("version"));
+		headers.set("if-match", String.valueOf(body.getMeta().getVersion()));
 
 		return exchange(HttpMethod.PUT, headers, body, uri, responseType, uriVariables);
 	}
@@ -170,7 +165,7 @@ public class UaaConnectionHelper {
 	 * {@link FilterRequestBuilder} builder = new FilterRequestBuilder();
 	 * builder.equals("username", userName).attributes("id");
 	 * 
-	 * {@link org.cloudfoundry.identity.uaa.api.user.model.UaaUsersResults} users = operations.getUsers(builder.build());
+	 * {@link org.cloudfoundry.identity.uaa.api.user.model.ScimUsers} users = operations.getUsers(builder.build());
 	 * 
 	 * return users.getResources().iterator().next().getId();
 	 * </pre>
@@ -347,8 +342,7 @@ public class UaaConnectionHelper {
 	 */
 	private OAuth2AccessToken getAccessToken() {
 		if (token == null) {
-			OAuth2ProtectedResourceDetails details = getResourceDetails(url, creds);
-			token = CHAIN.obtainAccessToken(details, new DefaultAccessTokenRequest());
+			token = CHAIN.obtainAccessToken(creds, new DefaultAccessTokenRequest());
 		}
 		else if (token.isExpired()) {
 			refreshAccessToken();
@@ -363,54 +357,7 @@ public class UaaConnectionHelper {
 	private void refreshAccessToken() {
 		Assert.notNull(token);
 
-		OAuth2ProtectedResourceDetails details = getResourceDetails(url, creds);
-		token = CHAIN.refreshAccessToken(details, token.getRefreshToken(), new DefaultAccessTokenRequest());
-	}
-
-	/**
-	 * Build the necessary details to get an access token for the correct token type (resource owner, client
-	 * credentials, or implicit, depending on how much information was provided)
-	 * 
-	 * @param url
-	 * @param creds
-	 * @return
-	 */
-	private OAuth2ProtectedResourceDetails getResourceDetails(URL url, UaaCredentials creds) {
-		Assert.notNull(url);
-		Assert.notNull(creds);
-		Assert.notNull(creds.getClientId());
-
-		OAuth2ProtectedResourceDetails details = null;
-		if (StringUtils.hasText(creds.getUserId()) && StringUtils.hasText(creds.getPassword())) {
-			ResourceOwnerPasswordResourceDetails tokenDetails = new ResourceOwnerPasswordResourceDetails();
-			tokenDetails.setClientAuthenticationScheme(AuthenticationScheme.header);
-			tokenDetails.setUsername(creds.getUserId());
-			tokenDetails.setPassword(creds.getPassword());
-			tokenDetails.setClientId(creds.getClientId());
-			tokenDetails.setClientSecret(creds.getClientSecret());
-			tokenDetails.setAccessTokenUri(url + "/oauth/token");
-
-			details = tokenDetails;
-		}
-		else if (StringUtils.hasText(creds.getClientSecret())) {
-			ClientCredentialsResourceDetails tokenDetails = new ClientCredentialsResourceDetails();
-			tokenDetails.setClientAuthenticationScheme(AuthenticationScheme.header);
-			tokenDetails.setClientId(creds.getClientId());
-			tokenDetails.setClientSecret(creds.getClientSecret());
-			tokenDetails.setAccessTokenUri(url + "/oauth/token");
-
-			details = tokenDetails;
-		}
-		else {
-			ImplicitResourceDetails tokenDetails = new ImplicitResourceDetails();
-			tokenDetails.setClientAuthenticationScheme(AuthenticationScheme.header);
-			tokenDetails.setClientId(creds.getClientId());
-			tokenDetails.setAccessTokenUri(url + "/oauth/token");
-
-			details = tokenDetails;
-		}
-
-		return details;
+		token = CHAIN.refreshAccessToken(creds, token.getRefreshToken(), new DefaultAccessTokenRequest());
 	}
 
 	/**

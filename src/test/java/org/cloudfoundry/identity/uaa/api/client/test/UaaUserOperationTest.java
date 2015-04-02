@@ -18,11 +18,13 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.Collections;
 
-import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
-import org.cloudfoundry.identity.uaa.api.common.model.ValueObject;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.api.user.UaaUserOperations;
-import org.cloudfoundry.identity.uaa.api.user.model.UaaUser;
+import org.cloudfoundry.identity.uaa.api.user.model.ScimUsers;
+import org.cloudfoundry.identity.uaa.scim.ScimUser;
+import org.cloudfoundry.identity.uaa.scim.ScimUser.Email;
+import org.cloudfoundry.identity.uaa.scim.ScimUser.Name;
+import org.cloudfoundry.identity.uaa.scim.ScimUser.PhoneNumber;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -44,7 +46,7 @@ public class UaaUserOperationTest extends AbstractOperationTest {
 	public void testUserRetrieval() {
 		ignoreIfUaaNotRunning();
 
-		PagedResult<UaaUser> users = operations.getUsers(FilterRequestBuilder.showAll());
+		ScimUsers users = operations.getUsers(FilterRequestBuilder.showAll());
 
 		assertNotNull(users);
 
@@ -57,18 +59,27 @@ public class UaaUserOperationTest extends AbstractOperationTest {
 	@Test
 	public void testUserCreateUpdateDelete() {
 		ignoreIfUaaNotRunning();
-		UaaUser newUser = new UaaUser();
+		ScimUser newUser = new ScimUser();
 		newUser.setUserName("testuser");
-		newUser.setName(new UaaUser.Name("Test User", "User", "Test"));
-		newUser.setEmails(Collections.singleton(new ValueObject("testuser@test.com")));
-		newUser.setPhoneNumbers(Collections.singleton(new ValueObject("303-555-1212")));
+		newUser.setName(new Name("Test", "User"));
+		
+		Email email = new Email();
+		email.setValue("testuser@test.com");
+		
+		newUser.setEmails(Collections.singletonList(email));
+		
+		PhoneNumber phone = new PhoneNumber();
+		phone.setValue("303-555-1212");
+		newUser.setPhoneNumbers(Collections.singletonList(phone));
 		newUser.setPassword("p4ssw0rd");
 
-		UaaUser createdUser = operations.createUser(newUser);
+		ScimUser createdUser = operations.createUser(newUser);
 		assertNotNull(createdUser.getId());
 
-		createdUser.setPhoneNumbers(Collections.singleton(new ValueObject("212-867-5309")));
-		UaaUser updatedUser = operations.updateUser(createdUser);
+		PhoneNumber updatedPhone = new PhoneNumber();
+		updatedPhone.setValue("212-867-5309");
+		createdUser.setPhoneNumbers(Collections.singletonList(updatedPhone));
+		ScimUser updatedUser = operations.updateUser(createdUser);
 
 		assertEquals(createdUser.getId(), updatedUser.getId());
 
@@ -78,7 +89,7 @@ public class UaaUserOperationTest extends AbstractOperationTest {
 	@Test
 	public void testUserPasswordChange() {
 		ignoreIfUaaNotRunning();
-		UaaUser user = operations.getUserByName("marissa");
+		ScimUser user = operations.getUserByName("marissa");
 
 		operations.changeUserPassword(user.getId(), "newk0ala");
 	}

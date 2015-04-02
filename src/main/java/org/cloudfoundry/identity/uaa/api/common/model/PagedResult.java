@@ -16,6 +16,8 @@ package org.cloudfoundry.identity.uaa.api.common.model;
 import java.util.Collection;
 import java.util.List;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+
 /**
  * All APIs that return multiple object do so in a paginated fashion, following the SCIM standards, allowing for
  * filtering, and returning partial information based on a list of requested attributes. The Spring
@@ -25,6 +27,7 @@ import java.util.List;
  * 
  * @author Josh Ghiloni
  */
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public abstract class PagedResult<T> {
 
 	private Collection<T> resources;

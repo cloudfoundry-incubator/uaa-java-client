@@ -18,7 +18,7 @@ import java.net.URL;
 import org.cloudfoundry.identity.uaa.api.common.UaaConnection;
 import org.cloudfoundry.identity.uaa.api.common.impl.UaaConnectionHelper;
 import org.cloudfoundry.identity.uaa.api.common.impl.UaaConnectionImpl;
-import org.cloudfoundry.identity.uaa.api.common.model.UaaCredentials;
+import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 
 /**
  * The initial entry point for the API classes
@@ -39,7 +39,7 @@ public final class UaaConnectionFactory {
 	 * @param credentials the {@link UaaCredentials} representing the current user. May be client-only
 	 * @return the connection entry point
 	 */
-	public static UaaConnection getConnection(URL uaaUrl, UaaCredentials credentials) {
+	public static UaaConnection getConnection(URL uaaUrl, OAuth2ProtectedResourceDetails credentials) {
 		UaaConnectionHelper helper = new UaaConnectionHelper(uaaUrl, credentials);
 		return new UaaConnectionImpl(helper);
 	}

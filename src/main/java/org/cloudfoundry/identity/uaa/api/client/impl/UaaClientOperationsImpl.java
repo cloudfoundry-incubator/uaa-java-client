@@ -17,10 +17,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cloudfoundry.identity.uaa.api.client.UaaClientOperations;
-import org.cloudfoundry.identity.uaa.api.client.model.UaaClient;
 import org.cloudfoundry.identity.uaa.api.client.model.UaaClientsResults;
 import org.cloudfoundry.identity.uaa.api.common.impl.UaaConnectionHelper;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
+import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.util.Assert;
 
 /**
@@ -36,28 +36,28 @@ public class UaaClientOperationsImpl implements UaaClientOperations {
 		this.helper = helper;
 	}
 
-	public UaaClient create(UaaClient client) {
+	public BaseClientDetails create(BaseClientDetails client) {
 		Assert.notNull(client);
 		Assert.hasText(client.getClientId());
 
-		return helper.post("/oauth/clients", client, UaaClient.class);
+		return helper.post("/oauth/clients", client, BaseClientDetails.class);
 	}
 
-	public UaaClient findById(String clientId) {
+	public BaseClientDetails findById(String clientId) {
 		Assert.hasText(clientId);
-		return helper.get("/oauth/clients/{id}", UaaClient.class, clientId);
+		return helper.get("/oauth/clients/{id}", BaseClientDetails.class, clientId);
 	}
 
-	public UaaClient update(UaaClient client) {
+	public BaseClientDetails update(BaseClientDetails client) {
 		Assert.notNull(client);
 		Assert.hasText(client.getClientId());
 
-		return helper.put("/oauth/clients/{id}", client, UaaClient.class, client.getClientId());
+		return helper.put("/oauth/clients/{id}", client, BaseClientDetails.class, client.getClientId());
 	}
 
-	public UaaClient delete(String clientId) {
+	public BaseClientDetails delete(String clientId) {
 		Assert.hasText(clientId);
-		return helper.delete("/oauth/clients/{id}", UaaClient.class, clientId);
+		return helper.delete("/oauth/clients/{id}", BaseClientDetails.class, clientId);
 	}
 
 	public UaaClientsResults getClients(FilterRequest request) {

@@ -13,10 +13,10 @@
  */
 package org.cloudfoundry.identity.uaa.api.user;
 
-import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
-import org.cloudfoundry.identity.uaa.api.common.model.UaaCredentials;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
-import org.cloudfoundry.identity.uaa.api.user.model.UaaUser;
+import org.cloudfoundry.identity.uaa.api.user.model.ScimUsers;
+import org.cloudfoundry.identity.uaa.scim.ScimUser;
+import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 
 /**
  * Provides endpoints to the UAA user APIs specified <a
@@ -32,7 +32,7 @@ public interface UaaUserOperations {
 	 * @param user The (partial) user information to be created
 	 * @return The newly created user. Will have id and meta information set
 	 */
-	public UaaUser createUser(UaaUser user);
+	public ScimUser createUser(ScimUser user);
 
 	/**
 	 * Update the user in the UAA database. Cannot use this method to change the user's password.
@@ -41,7 +41,7 @@ public interface UaaUserOperations {
 	 * @return the user as returned from the UAA api
 	 * @see #changeUserPassword(String, String)
 	 */
-	public UaaUser updateUser(UaaUser user);
+	public ScimUser updateUser(ScimUser user);
 
 	/**
 	 * Delete the user from UAA. Will throw an Exception if the operation fails
@@ -52,7 +52,7 @@ public interface UaaUserOperations {
 
 	/**
 	 * Change the given user's password. You must have <code>uaa.admin</code> and <code>password.write</code> scopes in
-	 * your {@link UaaCredentials} object. An exception will be thrown if the operation fails.
+	 * your {@link OAuth2ProtectedResourceDetails} object. An exception will be thrown if the operation fails.
 	 * 
 	 * <b>TODO</b>: Add a method to change the current user's password, if not in a client-credential-only scope
 	 * 
@@ -68,7 +68,7 @@ public interface UaaUserOperations {
 	 * @return the user object for this user, or null if the user does not exist or the operation fails
 	 * @see #getUsers(FilterRequest)
 	 */
-	public UaaUser getUserByName(String userName);
+	public ScimUser getUserByName(String userName);
 
 	/**
 	 * Get a page of users based on the given {@link FilterRequest}
@@ -77,5 +77,5 @@ public interface UaaUserOperations {
 	 * @return The page of users. 
 	 * @see org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder
 	 */
-	public PagedResult<UaaUser> getUsers(FilterRequest request);
+	public ScimUsers getUsers(FilterRequest request);
 }
