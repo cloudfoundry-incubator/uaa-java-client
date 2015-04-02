@@ -6,6 +6,12 @@ to be an easy-to-use and feature complete Java library for these APIs.
 
 ## Quick Start
 
+Note: this library only works with UAA 2.1.0 and later. Versions prior to 2.1.0
+should use the `1.0.0-RELEASE` tag, which has been tested with 2.0 and later, but
+should work with 1.9 and later. Be warned that the object model has changed
+significantly from the `1.0.0-RELEASE` tag to use existing objects rather than
+custom POJOs.
+
 ```
 $ git clone https://github.com/cloudfoundry-incubator/uaa-java-client.git
 $ mvn package
@@ -28,16 +34,23 @@ import java.net.URL;
 
 import org.cloudfoundry.identity.uaa.api.UaaConnectionFactory;
 import org.cloudfoundry.identity.uaa.api.common.UaaConnection;
-import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
-import org.cloudfoundry.identity.uaa.api.common.model.UaaCredentials;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.api.user.UaaUserOperations;
-import org.cloudfoundry.identity.uaa.api.user.model.UaaUser;
+import org.cloudfoundry.identity.uaa.api.user.model.ScimUsers;
+import org.cloudfoundry.identity.uaa.scim.ScimUser;
+import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
+import org.springframework.security.oauth2.common.AuthenticationScheme;
 
 public class GetUsersNamedJohn {
   public static void main(String[] args) throws Exception {
-    UaaCredentials credentials =
-      new UaaCredentials("app", "appclientsecret", "myuser", "mypassword");
+
+    ResourceOwnerPasswordResourceDetails credentials = new ResourceOwnerPasswordResourceDetails();
+    credentials.setAccessTokenUri("http://localhost:8080/uaa/oauth/token");
+    credentials.setClientAuthenticationScheme(AuthenticationScheme.header);
+    credentials.setClientId("app");
+    credentials.setClientSecret("appclientsecret");
+    credentials.setUsername("myuser");
+    credentials.setPassword("mypassword");
 
     URL uaaHost = new URL("http://localhost:8080/uaa");
     UaaConnection connection = UaaConnectionFactory.getConnection(uaaHost, credentials);
@@ -46,8 +59,8 @@ public class GetUsersNamedJohn {
     FilterRequestBuilder builder = new FilterRequestBuilder();
     builder.startsWith("username", "john.");
 
-    PagedResult<UaaUser> results = operations.getUsers(builder.build());
-    for (UaaUser user : results.getResources()) {
+    ScimUsers results = operations.getUsers(builder.build());
+    for (ScimUser user : results.getResources()) {
       System.out.println(user.getId());
     }
   }
