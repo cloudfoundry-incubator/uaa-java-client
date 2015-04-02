@@ -11,39 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cloudfoundry.identity.uaa.api.common.model;
+package org.cloudfoundry.identity.uaa.api.group.model;
+
+import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
+import org.cloudfoundry.identity.uaa.scim.ScimGroupExternalMember;
 
 /**
- * Certain UAA API calls return objects in the form {"value":"some value"}. This object represents that.
- * 
  * @author Josh Ghiloni
  *
  */
-public class ValueObject {
-	private String value;
+public class ScimGroupExternalMembers extends PagedResult<ScimGroupExternalMember> {
 
-	public ValueObject() {
-
-	}
-
-	/**
-	 * @param value The value to set
-	 */
-	public ValueObject(String value) {
-		this.value = value;
-	}
-
-	/**
-	 * @return the value
-	 */
-	public String getValue() {
-		return value;
-	}
-
-	/**
-	 * @param value The value to set
-	 */
-	public void setValue(String value) {
-		this.value = value;
-	}
 }

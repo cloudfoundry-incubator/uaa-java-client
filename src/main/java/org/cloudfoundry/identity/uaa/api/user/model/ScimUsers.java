@@ -14,11 +14,12 @@
 package org.cloudfoundry.identity.uaa.api.user.model;
 
 import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
+import org.cloudfoundry.identity.uaa.scim.ScimUser;
 
 /**
  * @author Josh Ghiloni
  *
  */
-public class UaaUsersResults extends PagedResult<UaaUser> {
+public class ScimUsers extends PagedResult<ScimUser> {
 
 }

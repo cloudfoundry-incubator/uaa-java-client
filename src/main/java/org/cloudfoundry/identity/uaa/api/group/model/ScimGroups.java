@@ -14,11 +14,12 @@
 package org.cloudfoundry.identity.uaa.api.group.model;
 
 import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
+import org.cloudfoundry.identity.uaa.scim.ScimGroup;
 
 /**
  * @author Josh Ghiloni
  *
  */
-public class UaaGroupMappingsResults extends PagedResult<UaaGroupMapping> {
+public class ScimGroups extends PagedResult<ScimGroup> {
 
 }

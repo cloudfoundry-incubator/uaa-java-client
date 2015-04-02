@@ -13,7 +13,7 @@
  */
 package org.cloudfoundry.identity.uaa.api.user.impl;
 
-import static org.cloudfoundry.identity.uaa.api.common.model.ScimMetaObject.SCHEMAS;
+import static org.cloudfoundry.identity.uaa.scim.ScimCore.SCHEMAS;
 
 import java.util.Collections;
 
@@ -22,8 +22,8 @@ import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.api.user.UaaUserOperations;
-import org.cloudfoundry.identity.uaa.api.user.model.UaaUser;
-import org.cloudfoundry.identity.uaa.api.user.model.UaaUsersResults;
+import org.cloudfoundry.identity.uaa.api.user.model.ScimUsers;
+import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.springframework.util.Assert;
 
 /**
@@ -39,16 +39,16 @@ public class UaaUserOperationsImpl implements UaaUserOperations {
 		this.helper = helper;
 	}
 
-	public UaaUser createUser(UaaUser user) {
+	public ScimUser createUser(ScimUser user) {
 		Assert.notNull(user);
 		Assert.hasText(user.getUserName());
 
 		user.setSchemas(SCHEMAS);
 
-		return helper.post("/Users", user, UaaUser.class);
+		return helper.post("/Users", user, ScimUser.class);
 	}
 
-	public UaaUser updateUser(UaaUser user) {
+	public ScimUser updateUser(ScimUser user) {
 		Assert.notNull(user);
 		Assert.hasText(user.getId());
 
@@ -56,7 +56,7 @@ public class UaaUserOperationsImpl implements UaaUserOperations {
 		user.setGroups(null);
 		user.setPassword(null);
 
-		return helper.putScimObject("/Users/{id}", user, UaaUser.class, user.getId());
+		return helper.putScimObject("/Users/{id}", user, ScimUser.class, user.getId());
 	}
 
 	public void deleteUser(String userId) {
@@ -71,15 +71,15 @@ public class UaaUserOperationsImpl implements UaaUserOperations {
 		helper.put("/Users/{id}/password", Collections.singletonMap("password", newPassword), String.class, userId);
 	}
 
-	public PagedResult<UaaUser> getUsers(FilterRequest request) {
+	public ScimUsers getUsers(FilterRequest request) {
 		Assert.notNull(request);
 
-		return helper.get(helper.buildScimFilterUrl("/Users", request), UaaUsersResults.class);
+		return helper.get(helper.buildScimFilterUrl("/Users", request), ScimUsers.class);
 	}
 
-	public UaaUser getUserByName(String userName) {
+	public ScimUser getUserByName(String userName) {
 		FilterRequest request = new FilterRequestBuilder().equals("username", userName).build();
-		PagedResult<UaaUser> result = getUsers(request);
+		PagedResult<ScimUser> result = getUsers(request);
 
 		if (result != null && result.getResources() != null && result.getResources().size() == 1) {
 			return result.getResources().iterator().next();

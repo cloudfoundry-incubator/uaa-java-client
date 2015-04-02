@@ -19,15 +19,15 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.cloudfoundry.identity.uaa.api.client.UaaClientOperations;
-import org.cloudfoundry.identity.uaa.api.client.model.UaaClient;
 import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
 import org.cloudfoundry.identity.uaa.api.common.model.UaaTokenGrantType;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 
 /**
  * @author Josh Ghiloni
@@ -48,7 +48,7 @@ public class UaaClientOperationTest extends AbstractOperationTest {
 	public void testGetClients() throws Exception {
 		ignoreIfUaaNotRunning();
 		
-		PagedResult<UaaClient> clients = operations.getClients(FilterRequestBuilder.showAll());
+		PagedResult<BaseClientDetails> clients = operations.getClients(FilterRequestBuilder.showAll());
 
 		assertEquals("Total Results wrong", 11, clients.getTotalResults());
 		assertEquals("Items Per Page wrong", 11, clients.getItemsPerPage());
@@ -59,7 +59,7 @@ public class UaaClientOperationTest extends AbstractOperationTest {
 	public void testGetClient() throws Exception {
 		ignoreIfUaaNotRunning();
 		
-		UaaClient client = operations.findById("app");
+		BaseClientDetails client = operations.findById("app");
 
 		assertEquals("ID wrong", "app", client.getClientId());
 		assertNull("Secret should not be returned", client.getClientSecret());
@@ -69,9 +69,9 @@ public class UaaClientOperationTest extends AbstractOperationTest {
 	public void testCreateDelete() throws Exception {
 		ignoreIfUaaNotRunning();
 		
-		UaaClient client = createClient();
+		BaseClientDetails client = createClient();
 
-		UaaClient checkClient = operations.findById(client.getClientId());
+		BaseClientDetails checkClient = operations.findById(client.getClientId());
 		assertEquals(client.getClientId(), checkClient.getClientId());
 
 		operations.delete(client.getClientId());
@@ -81,13 +81,13 @@ public class UaaClientOperationTest extends AbstractOperationTest {
 	public void testUpdate() throws Exception {
 		ignoreIfUaaNotRunning();
 		
-		UaaClient toUpdate = createClient();
+		BaseClientDetails toUpdate = createClient();
 
 		try {
-			UaaClient client = operations.findById(toUpdate.getClientId());
+			BaseClientDetails client = operations.findById(toUpdate.getClientId());
 
 			toUpdate.setScope(Arrays.asList("foo"));
-			UaaClient updated = operations.update(toUpdate);
+			BaseClientDetails updated = operations.update(toUpdate);
 			assertNotEquals(client.getScope(), updated.getScope());
 			assertEquals("foo", updated.getScope().iterator().next());
 		}
@@ -100,7 +100,7 @@ public class UaaClientOperationTest extends AbstractOperationTest {
 	public void testChangePassword() throws Exception {
 		ignoreIfUaaNotRunning();
 		
-		UaaClient client = operations.findById("admin");
+		BaseClientDetails client = operations.findById("admin");
 
 		operations.changeClientSecret(client.getClientId(), "adminsecret", "newSecret");
 
@@ -115,15 +115,15 @@ public class UaaClientOperationTest extends AbstractOperationTest {
 		}
 	}
 
-	private UaaClient createClient() {
-		UaaClient client = new UaaClient();
+	private BaseClientDetails createClient() {
+		BaseClientDetails client = new BaseClientDetails();
 		client.setClientId("test");
 		client.setClientSecret("testsecret");
-		client.setAccessTokenValidity(3600);
-		client.setAuthorizedGrantTypes(Arrays.asList(UaaTokenGrantType.authorization_code,
-				UaaTokenGrantType.client_credentials));
-		client.setRefreshTokenValidity(86400);
-		client.setAuthorities(Collections.singleton("uaa.resource"));
+		client.setAccessTokenValiditySeconds(3600);
+		client.setAuthorizedGrantTypes(Arrays.asList(UaaTokenGrantType.authorization_code.toString(),
+				UaaTokenGrantType.client_credentials.toString()));
+		client.setRefreshTokenValiditySeconds(86400);
+		client.setAuthorities(AuthorityUtils.createAuthorityList("uaa.resource"));
 
 		return operations.create(client);
 	}

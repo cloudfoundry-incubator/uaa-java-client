@@ -13,35 +13,29 @@
  */
 package org.cloudfoundry.identity.uaa.api.group.impl;
 
-import static org.cloudfoundry.identity.uaa.api.common.model.ScimMetaObject.SCHEMAS;
+import static org.cloudfoundry.identity.uaa.scim.ScimCore.SCHEMAS;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.cloudfoundry.identity.uaa.api.common.impl.UaaConnectionHelper;
-import org.cloudfoundry.identity.uaa.api.common.model.ScimMetaObject;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.api.group.UaaGroupOperations;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroup;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroupMapping;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroupMappingIdentifier;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroupMappingsResults;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroupMember;
-import org.cloudfoundry.identity.uaa.api.group.model.UaaGroupsResults;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import org.cloudfoundry.identity.uaa.api.group.model.ScimGroupExternalMembers;
+import org.cloudfoundry.identity.uaa.api.group.model.ScimGroups;
+import org.cloudfoundry.identity.uaa.scim.ScimGroup;
+import org.cloudfoundry.identity.uaa.scim.ScimGroupExternalMember;
+import org.cloudfoundry.identity.uaa.scim.ScimGroupMember;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * @see UaaGroupOperations
+ * @see ScimGroupOperations
  * 
  * @author Josh Ghiloni
  */
@@ -53,13 +47,13 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 		this.helper = helper;
 	}
 
-	public UaaGroup createGroup(UaaGroup group) {
+	public ScimGroup createGroup(ScimGroup group) {
 		Assert.notNull(group);
 		Assert.hasText(group.getDisplayName());
 
 		group.setSchemas(SCHEMAS);
 
-		return helper.post("/Groups", group, UaaGroup.class);
+		return helper.post("/Groups", group, ScimGroup.class);
 	}
 
 	public void deleteGroup(String groupId) {
@@ -68,13 +62,14 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 		helper.delete("/Groups/{id}", Object.class, groupId);
 	}
 
-	public UaaGroupsResults getGroups(FilterRequest request) {
+	public ScimGroups getGroups(FilterRequest request) {
 		Assert.notNull(request);
 
-		return helper.get(helper.buildScimFilterUrl("/Groups", request), UaaGroupsResults.class);
+		return helper.get(helper.buildScimFilterUrl("/Groups", request), ScimGroups.class);
 	}
 
-	public UaaGroupMapping createGroupMapping(UaaGroupMappingIdentifier type, String identifier, String externalGroupDn) {
+	public ScimGroupExternalMember createGroupMapping(ScimGroupExternalMemberType type, String identifier,
+			String externalGroupDn) {
 		Assert.notNull(type);
 		Assert.hasText(identifier);
 		Assert.hasText(externalGroupDn);
@@ -82,90 +77,87 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 		Map<String, Object> request = new LinkedHashMap<String, Object>(3);
 
 		request.put("schemas", SCHEMAS);
-		request.put(type.jsonKey(), identifier);
+		request.put(type.toString(), identifier);
 		request.put("externalGroup", externalGroupDn);
 
-		return helper.post("/Groups/External", request, UaaGroupMapping.class);
+		return helper.post("/Groups/External", request, ScimGroupExternalMember.class);
 	}
 
-	public void deleteGroupMapping(UaaGroupMapping mapping) {
+	public void deleteGroupMapping(ScimGroupExternalMember mapping) {
 		Assert.notNull(mapping);
 
 		String id = null;
-		UaaGroupMappingIdentifier type = null;
+		String type = null;
 		String external = mapping.getExternalGroup();
 
 		if (StringUtils.hasText(mapping.getGroupId())) {
 			id = mapping.getGroupId();
-			type = UaaGroupMappingIdentifier.GROUP_ID;
+			type = "groupId";
 		}
 		else {
 			id = mapping.getDisplayName();
-			type = UaaGroupMappingIdentifier.DISPLAY_NAME;
+			type = "displayName";
 		}
 
 		helper.delete("/Groups/External/{type}/{id}/externalGroup/{externalGroup}", String.class, type, id, external);
 	}
 
-	public UaaGroupMappingsResults getGroupMappings(FilterRequest request) {
+	public ScimGroupExternalMembers getGroupMappings(FilterRequest request) {
 		Assert.notNull(request);
-		return helper.get(helper.buildScimFilterUrl("/Groups/External", request), UaaGroupMappingsResults.class);
+		return helper.get(helper.buildScimFilterUrl("/Groups/External", request), ScimGroupExternalMembers.class);
 	}
 
-	public UaaGroup updateGroupName(String groupId, String newName) {
-		UaaGroup group = getGroupById(groupId);
+	public ScimGroup updateGroupName(String groupId, String newName) {
+		ScimGroup group = getGroupById(groupId);
 		group.setDisplayName(newName);
 
-		UaaModificationGroup modGroup = new UaaModificationGroup(group);
-
-		return updateGroup(modGroup);
+		return updateGroup(group);
 	}
 
-	public UaaGroup addMember(String groupId, String memberUserName) {
+	public ScimGroup addMember(String groupId, String memberUserName) {
 		Assert.hasText(memberUserName);
 
-		UaaGroup group = getGroupById(groupId);
-		UaaModificationGroup modGroup = new UaaModificationGroup(group);
+		ScimGroup group = getGroupById(groupId);
 
 		String memberId = helper.getUserIdByName(memberUserName);
 
-		Collection<String> members = modGroup.getMembers();
+		List<ScimGroupMember> members = group.getMembers();
 		if (members == null) {
-			members = new ArrayList<String>(1);
+			members = new ArrayList<ScimGroupMember>(1);
 		}
+		
+		ScimGroupMember member = new ScimGroupMember(memberId);
+		members.add(member);
+		group.setMembers(members);
 
-		members.add(memberId);
-		modGroup.setMembers(members);
-
-		return updateGroup(modGroup);
+		return updateGroup(group);
 	}
 
-	public UaaGroup deleteMember(String groupId, String memberUserName) {
+	public ScimGroup deleteMember(String groupId, String memberUserName) {
 		Assert.hasText(memberUserName);
 
-		UaaGroup group = getGroupById(groupId);
-		UaaModificationGroup modGroup = new UaaModificationGroup(group);
+		ScimGroup group = getGroupById(groupId);
 
 		String memberId = helper.getUserIdByName(memberUserName);
 
-		Collection<String> members = modGroup.getMembers();
+		List<ScimGroupMember> members = group.getMembers();
 		if (members != null && !members.isEmpty()) {
-			for (Iterator<String> iter = members.iterator(); iter.hasNext();) {
-				String member = iter.next();
-
-				if (memberId.equals(member)) {
+			for (Iterator<ScimGroupMember> iter = members.iterator(); iter.hasNext();) {
+				ScimGroupMember member = iter.next();
+				
+				if (memberId.equals(member.getMemberId())) {
 					iter.remove();
 					break;
 				}
 			}
 		}
 
-		return updateGroup(modGroup);
+		return updateGroup(group);
 	}
 
-	private UaaGroup getGroupById(String groupId) {
+	private ScimGroup getGroupById(String groupId) {
 		FilterRequest request = new FilterRequestBuilder().equals("id", groupId).build();
-		UaaGroupsResults results = getGroups(request);
+		ScimGroups results = getGroups(request);
 
 		if (results.getTotalResults() > 0) {
 			return results.getResources().iterator().next();
@@ -174,65 +166,44 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 		return null;
 	}
 
-	private UaaGroup updateGroup(UaaModificationGroup group) {
+	private ScimGroup updateGroup(ScimGroup group) {
 		Assert.notNull(group);
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("if-match", group.getMeta().get("version"));
+		headers.set("if-match", String.valueOf(group.getMeta().getVersion()));
 
-		return helper.putScimObject("/Groups/{id}", group, UaaGroup.class, group.getId());
+		return helper.putScimObject("/Groups/{id}", group, ScimGroup.class, group.getId());
 	}
 
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	@JsonSerialize(include = Inclusion.NON_NULL)
-	public static class UaaModificationGroup extends ScimMetaObject {
-
-		private String displayName;
-
-		private String groupId;
-
-		private Collection<String> members;
-
-		UaaModificationGroup(UaaGroup clone) {
-			setDisplayName(clone.getDisplayName());
-			setGroupId(clone.getGroupId());
-			setSchemas(clone.getSchemas());
-			setId(clone.getId());
-			setMeta(clone.getMeta());
-
-			Collection<UaaGroupMember> members = clone.getMembers();
-			if (members != null) {
-				List<String> memberIds = new ArrayList<String>(members.size());
-				for (UaaGroupMember member : members) {
-					memberIds.add(member.getValue());
-				}
-
-				setMembers(memberIds);
-			}
-		}
-
-		public String getDisplayName() {
-			return displayName;
-		}
-
-		public void setDisplayName(String displayName) {
-			this.displayName = displayName;
-		}
-
-		public String getGroupId() {
-			return groupId;
-		}
-
-		public void setGroupId(String groupId) {
-			this.groupId = groupId;
-		}
-
-		public Collection<String> getMembers() {
-			return members;
-		}
-
-		public void setMembers(Collection<String> members) {
-			this.members = members;
-		}
-	}
+	/*
+	 * @JsonIgnoreProperties(ignoreUnknown = true)
+	 * 
+	 * @JsonSerialize(include = Inclusion.NON_NULL) public static class UaaModificationGroup extends ScimMetaObject {
+	 * 
+	 * private String displayName;
+	 * 
+	 * private String groupId;
+	 * 
+	 * private Collection<String> members;
+	 * 
+	 * UaaModificationGroup(ScimGroup clone) { setDisplayName(clone.getDisplayName()); setGroupId(clone.getGroupId());
+	 * setSchemas(clone.getSchemas()); setId(clone.getId()); setMeta(clone.getMeta());
+	 * 
+	 * Collection<ScimGroupMember> members = clone.getMembers(); if (members != null) { List<String> memberIds = new
+	 * ArrayList<String>(members.size()); for (ScimGroupMember member : members) { memberIds.add(member.getValue()); }
+	 * 
+	 * setMembers(memberIds); } }
+	 * 
+	 * public String getDisplayName() { return displayName; }
+	 * 
+	 * public void setDisplayName(String displayName) { this.displayName = displayName; }
+	 * 
+	 * public String getGroupId() { return groupId; }
+	 * 
+	 * public void setGroupId(String groupId) { this.groupId = groupId; }
+	 * 
+	 * public Collection<String> getMembers() { return members; }
+	 * 
+	 * public void setMembers(Collection<String> members) { this.members = members; } }
+	 */
 }

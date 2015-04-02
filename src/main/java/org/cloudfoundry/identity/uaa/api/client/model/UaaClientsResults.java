@@ -14,11 +14,12 @@
 package org.cloudfoundry.identity.uaa.api.client.model;
 
 import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
+import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 
 /**
  * @author Josh Ghiloni
  *
  */
-public class UaaClientsResults extends PagedResult<UaaClient> {
+public class UaaClientsResults extends PagedResult<BaseClientDetails> {
 
 }

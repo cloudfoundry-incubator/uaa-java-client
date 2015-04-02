@@ -13,9 +13,9 @@
  */
 package org.cloudfoundry.identity.uaa.api.client;
 
-import org.cloudfoundry.identity.uaa.api.client.model.UaaClient;
 import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
+import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 
 /**
  * Provides endpoints to the UAA client APIs specified <a
@@ -32,14 +32,14 @@ public interface UaaClientOperations {
 	 * @param client the new client
 	 * @return the newly created client
 	 */
-	public UaaClient create(UaaClient client);
+	public BaseClientDetails create(BaseClientDetails client);
 
 	/**
 	 * Find a given client by its ID
 	 * @param clientId the client ID
 	 * @return the client, or null if not found
 	 */
-	public UaaClient findById(String clientId);
+	public BaseClientDetails findById(String clientId);
 
 	/**
 	 * Update the client. Secrets cannot be changed in this method.
@@ -48,7 +48,7 @@ public interface UaaClientOperations {
 	 * @return the client returned from the API
 	 * @see #changeClientSecret(String, String, String)
 	 */
-	public UaaClient update(UaaClient updated);
+	public BaseClientDetails update(BaseClientDetails updated);
 
 	/**
 	 * Delete the client with the given ID
@@ -56,7 +56,7 @@ public interface UaaClientOperations {
 	 * @param clientId
 	 * @return
 	 */
-	public UaaClient delete(String clientId);
+	public BaseClientDetails delete(String clientId);
 
 	/**
 	 * Get clients based on the given SCIM filter.
@@ -65,7 +65,7 @@ public interface UaaClientOperations {
 	 * @return the clients
 	 * @see org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder
 	 */
-	public PagedResult<UaaClient> getClients(FilterRequest request);
+	public PagedResult<BaseClientDetails> getClients(FilterRequest request);
 
 	/**
 	 * Change a client's secret. Note that you MUST have the existing secret, as the APIs require it.
