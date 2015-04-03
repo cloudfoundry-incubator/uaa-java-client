@@ -1,5 +1,4 @@
 /*
- * Copyright 2015 ECS Team, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +19,8 @@ import java.util.Collections;
 import org.cloudfoundry.identity.uaa.rest.SearchResults;
 
 /**
+ * Used until SearchResults has a default constructor availabe.
+ * 
  * @author Josh Ghiloni
  *
  */
