@@ -22,14 +22,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudfoundry.identity.uaa.api.common.impl.UaaConnectionHelper;
+import org.cloudfoundry.identity.uaa.api.common.model.WrappedSearchResults;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.api.group.UaaGroupOperations;
-import org.cloudfoundry.identity.uaa.api.group.model.ScimGroupExternalMembers;
-import org.cloudfoundry.identity.uaa.api.group.model.ScimGroups;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.cloudfoundry.identity.uaa.scim.ScimGroup;
 import org.cloudfoundry.identity.uaa.scim.ScimGroupExternalMember;
 import org.cloudfoundry.identity.uaa.scim.ScimGroupMember;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -40,6 +41,21 @@ import org.springframework.util.StringUtils;
  * @author Josh Ghiloni
  */
 public class UaaGroupOperationsImpl implements UaaGroupOperations {
+
+	private static final ParameterizedTypeReference<Object> OBJ_REF = new ParameterizedTypeReference<Object>() {
+	};
+
+	private static final ParameterizedTypeReference<ScimGroup> GROUP_REF = new ParameterizedTypeReference<ScimGroup>() {
+	};
+
+	private static final ParameterizedTypeReference<ScimGroupExternalMember> EXT_GROUP_REF = new ParameterizedTypeReference<ScimGroupExternalMember>() {
+	};
+
+	private static final ParameterizedTypeReference<WrappedSearchResults<ScimGroup>> GROUPS_REF = new ParameterizedTypeReference<WrappedSearchResults<ScimGroup>>() {
+	};
+
+	private static final ParameterizedTypeReference<WrappedSearchResults<ScimGroupExternalMember>> EXT_GROUPS_REF = new ParameterizedTypeReference<WrappedSearchResults<ScimGroupExternalMember>>() {
+	};
 
 	private UaaConnectionHelper helper;
 
@@ -53,19 +69,19 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 
 		group.setSchemas(SCHEMAS);
 
-		return helper.post("/Groups", group, ScimGroup.class);
+		return helper.post("/Groups", group, GROUP_REF);
 	}
 
 	public void deleteGroup(String groupId) {
 		Assert.hasText(groupId);
 
-		helper.delete("/Groups/{id}", Object.class, groupId);
+		helper.delete("/Groups/{id}", OBJ_REF, groupId);
 	}
 
-	public ScimGroups getGroups(FilterRequest request) {
+	public SearchResults<ScimGroup> getGroups(FilterRequest request) {
 		Assert.notNull(request);
 
-		return helper.get(helper.buildScimFilterUrl("/Groups", request), ScimGroups.class);
+		return helper.get(helper.buildScimFilterUrl("/Groups", request), GROUPS_REF);
 	}
 
 	public ScimGroupExternalMember createGroupMapping(ScimGroupExternalMemberType type, String identifier,
@@ -80,7 +96,7 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 		request.put(type.toString(), identifier);
 		request.put("externalGroup", externalGroupDn);
 
-		return helper.post("/Groups/External", request, ScimGroupExternalMember.class);
+		return helper.post("/Groups/External", request, EXT_GROUP_REF);
 	}
 
 	public void deleteGroupMapping(ScimGroupExternalMember mapping) {
@@ -99,12 +115,12 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 			type = "displayName";
 		}
 
-		helper.delete("/Groups/External/{type}/{id}/externalGroup/{externalGroup}", String.class, type, id, external);
+		helper.delete("/Groups/External/{type}/{id}/externalGroup/{externalGroup}", OBJ_REF, type, id, external);
 	}
 
-	public ScimGroupExternalMembers getGroupMappings(FilterRequest request) {
+	public SearchResults<ScimGroupExternalMember> getGroupMappings(FilterRequest request) {
 		Assert.notNull(request);
-		return helper.get(helper.buildScimFilterUrl("/Groups/External", request), ScimGroupExternalMembers.class);
+		return helper.get(helper.buildScimFilterUrl("/Groups/External", request), EXT_GROUPS_REF);
 	}
 
 	public ScimGroup updateGroupName(String groupId, String newName) {
@@ -125,7 +141,7 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 		if (members == null) {
 			members = new ArrayList<ScimGroupMember>(1);
 		}
-		
+
 		ScimGroupMember member = new ScimGroupMember(memberId);
 		members.add(member);
 		group.setMembers(members);
@@ -144,7 +160,7 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 		if (members != null && !members.isEmpty()) {
 			for (Iterator<ScimGroupMember> iter = members.iterator(); iter.hasNext();) {
 				ScimGroupMember member = iter.next();
-				
+
 				if (memberId.equals(member.getMemberId())) {
 					iter.remove();
 					break;
@@ -157,7 +173,7 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 
 	private ScimGroup getGroupById(String groupId) {
 		FilterRequest request = new FilterRequestBuilder().equals("id", groupId).build();
-		ScimGroups results = getGroups(request);
+		SearchResults<ScimGroup> results = getGroups(request);
 
 		if (results.getTotalResults() > 0) {
 			return results.getResources().iterator().next();
@@ -172,38 +188,6 @@ public class UaaGroupOperationsImpl implements UaaGroupOperations {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("if-match", String.valueOf(group.getMeta().getVersion()));
 
-		return helper.putScimObject("/Groups/{id}", group, ScimGroup.class, group.getId());
+		return helper.putScimObject("/Groups/{id}", group, GROUP_REF, group.getId());
 	}
-
-	/*
-	 * @JsonIgnoreProperties(ignoreUnknown = true)
-	 * 
-	 * @JsonSerialize(include = Inclusion.NON_NULL) public static class UaaModificationGroup extends ScimMetaObject {
-	 * 
-	 * private String displayName;
-	 * 
-	 * private String groupId;
-	 * 
-	 * private Collection<String> members;
-	 * 
-	 * UaaModificationGroup(ScimGroup clone) { setDisplayName(clone.getDisplayName()); setGroupId(clone.getGroupId());
-	 * setSchemas(clone.getSchemas()); setId(clone.getId()); setMeta(clone.getMeta());
-	 * 
-	 * Collection<ScimGroupMember> members = clone.getMembers(); if (members != null) { List<String> memberIds = new
-	 * ArrayList<String>(members.size()); for (ScimGroupMember member : members) { memberIds.add(member.getValue()); }
-	 * 
-	 * setMembers(memberIds); } }
-	 * 
-	 * public String getDisplayName() { return displayName; }
-	 * 
-	 * public void setDisplayName(String displayName) { this.displayName = displayName; }
-	 * 
-	 * public String getGroupId() { return groupId; }
-	 * 
-	 * public void setGroupId(String groupId) { this.groupId = groupId; }
-	 * 
-	 * public Collection<String> getMembers() { return members; }
-	 * 
-	 * public void setMembers(Collection<String> members) { this.members = members; } }
-	 */
 }

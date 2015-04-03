@@ -20,13 +20,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cloudfoundry.identity.uaa.api.common.model.WrappedSearchResults;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.cloudfoundry.identity.uaa.scim.ScimCore;
+import org.cloudfoundry.identity.uaa.scim.ScimUser;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -46,6 +49,7 @@ import org.springframework.security.oauth2.client.token.grant.implicit.ImplicitA
 import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordAccessTokenProvider;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -90,7 +94,8 @@ public class UaaConnectionHelper {
 	 * @return the response body
 	 * @see #exchange(HttpMethod, Object, String, Class, Object...)
 	 */
-	public <ResponseType> ResponseType get(String uri, Class<ResponseType> responseType, Object... uriVariables) {
+	public <ResponseType> ResponseType get(String uri, ParameterizedTypeReference<ResponseType> responseType,
+			Object... uriVariables) {
 		return exchange(HttpMethod.GET, null, uri, responseType, uriVariables);
 	}
 
@@ -103,7 +108,8 @@ public class UaaConnectionHelper {
 	 * @return the response body
 	 * @see #exchange(HttpMethod, Object, String, Class, Object...)
 	 */
-	public <ResponseType> ResponseType delete(String uri, Class<ResponseType> responseType, Object... uriVariables) {
+	public <ResponseType> ResponseType delete(String uri, ParameterizedTypeReference<ResponseType> responseType,
+			Object... uriVariables) {
 		return exchange(HttpMethod.DELETE, null, uri, responseType, uriVariables);
 	}
 
@@ -118,7 +124,7 @@ public class UaaConnectionHelper {
 	 * @see #exchange(HttpMethod, Object, String, Class, Object...)
 	 */
 	public <RequestType, ResponseType> ResponseType post(String uri, RequestType body,
-			Class<ResponseType> responseType, Object... uriVariables) {
+			ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {
 		return exchange(HttpMethod.POST, body, uri, responseType, uriVariables);
 	}
 
@@ -132,8 +138,8 @@ public class UaaConnectionHelper {
 	 * @return the response body
 	 * @see #exchange(HttpMethod, Object, String, Class, Object...)
 	 */
-	public <RequestType, ResponseType> ResponseType put(String uri, RequestType body, Class<ResponseType> responseType,
-			Object... uriVariables) {
+	public <RequestType, ResponseType> ResponseType put(String uri, RequestType body,
+			ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {
 		return exchange(HttpMethod.PUT, body, uri, responseType, uriVariables);
 	}
 
@@ -149,7 +155,7 @@ public class UaaConnectionHelper {
 	 * @see #exchange(HttpMethod, HttpHeaders, Object, String, Class, Object...)
 	 */
 	public <RequestType extends ScimCore, ResponseType> ResponseType putScimObject(String uri, RequestType body,
-			Class<ResponseType> responseType, Object... uriVariables) {
+			ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("if-match", String.valueOf(body.getMeta().getVersion()));
 
@@ -182,15 +188,18 @@ public class UaaConnectionHelper {
 		String uri = buildScimFilterUrl("/Users", request);
 
 		try {
+			SearchResults<ScimUser> retval = exchange(HttpMethod.GET, null, uri,
+					new ParameterizedTypeReference<WrappedSearchResults<ScimUser>>() {
+					});
 
-			@SuppressWarnings({ "rawtypes" })
-			Map retval = exchange(HttpMethod.GET, null, uri, Map.class);
+			Collection<ScimUser> resources = retval.getResources();
 
-			@SuppressWarnings("unchecked")
-			Collection<Map<String, Object>> resources = (Collection<Map<String, Object>>) retval.get("resources");
+			if (CollectionUtils.isEmpty(resources)) {
+				return null;
+			}
 
-			Map<String, Object> first = resources.iterator().next();
-			return (String) first.get("id");
+			ScimUser user = resources.iterator().next();
+			return user.getId();
 		}
 		catch (Throwable t) {
 			t.printStackTrace();
@@ -210,7 +219,7 @@ public class UaaConnectionHelper {
 	 * @see #exchange(HttpMethod, HttpHeaders, Object, String, Class, Object...)
 	 */
 	private <RequestType, ResponseType> ResponseType exchange(HttpMethod method, RequestType body, String uri,
-			Class<ResponseType> responseType, Object... uriVariables) {
+			ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {
 		return exchange(method, new HttpHeaders(), body, uri, responseType, uriVariables);
 	}
 
@@ -226,7 +235,7 @@ public class UaaConnectionHelper {
 	 * @see org.springframework.web.client.RestTemplate#exchange(String, HttpMethod, HttpEntity, Class, Object...)
 	 */
 	private <RequestType, ResponseType> ResponseType exchange(HttpMethod method, HttpHeaders headers, RequestType body,
-			String uri, Class<ResponseType> responseType, Object... uriVariables) {
+			String uri, ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {
 		getHeaders(headers);
 
 		RestTemplate template = new RestTemplate();
