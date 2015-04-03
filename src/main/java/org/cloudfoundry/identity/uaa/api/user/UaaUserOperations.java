@@ -14,7 +14,7 @@
 package org.cloudfoundry.identity.uaa.api.user;
 
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
-import org.cloudfoundry.identity.uaa.api.user.model.ScimUsers;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 
@@ -77,5 +77,5 @@ public interface UaaUserOperations {
 	 * @return The page of users. 
 	 * @see org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder
 	 */
-	public ScimUsers getUsers(FilterRequest request);
+	public SearchResults<ScimUser> getUsers(FilterRequest request);
 }

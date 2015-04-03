@@ -20,7 +20,7 @@ import java.util.Collections;
 
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.api.user.UaaUserOperations;
-import org.cloudfoundry.identity.uaa.api.user.model.ScimUsers;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.cloudfoundry.identity.uaa.scim.ScimUser.Email;
 import org.cloudfoundry.identity.uaa.scim.ScimUser.Name;
@@ -46,7 +46,7 @@ public class UaaUserOperationTest extends AbstractOperationTest {
 	public void testUserRetrieval() {
 		ignoreIfUaaNotRunning();
 
-		ScimUsers users = operations.getUsers(FilterRequestBuilder.showAll());
+		SearchResults<ScimUser> users = operations.getUsers(FilterRequestBuilder.showAll());
 
 		assertNotNull(users);
 
