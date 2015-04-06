@@ -36,7 +36,7 @@ import org.cloudfoundry.identity.uaa.api.UaaConnectionFactory;
 import org.cloudfoundry.identity.uaa.api.common.UaaConnection;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.api.user.UaaUserOperations;
-import org.cloudfoundry.identity.uaa.api.user.model.ScimUsers;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
 import org.springframework.security.oauth2.common.AuthenticationScheme;
@@ -59,7 +59,7 @@ public class GetUsersNamedJohn {
     FilterRequestBuilder builder = new FilterRequestBuilder();
     builder.startsWith("username", "john.");
 
-    ScimUsers results = operations.getUsers(builder.build());
+    SearchResults<ScimUser> results = operations.getUsers(builder.build());
     for (ScimUser user : results.getResources()) {
       System.out.println(user.getId());
     }
@@ -75,6 +75,4 @@ Authoratative information about the UAA is located [here](https://github.com/clo
 ## Contributing
 
 Pull requests are welcome! Current to-dos including writing test cases for group
-mapping APIs, as well as completing the model objects more fully. I'm also considering
-taking out the existing Spring depedencies to make the client more standalone,
-but that's a very low priority.
+mapping APIs and making it easier for test cases to point to an existing UAA server.
