@@ -18,12 +18,13 @@ import static org.cloudfoundry.identity.uaa.scim.ScimCore.SCHEMAS;
 import java.util.Collections;
 
 import org.cloudfoundry.identity.uaa.api.common.impl.UaaConnectionHelper;
-import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
+import org.cloudfoundry.identity.uaa.api.common.model.WrappedSearchResults;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.api.user.UaaUserOperations;
-import org.cloudfoundry.identity.uaa.api.user.model.ScimUsers;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -35,6 +36,15 @@ import org.springframework.util.CollectionUtils;
  */
 public class UaaUserOperationsImpl implements UaaUserOperations {
 	private UaaConnectionHelper helper;
+	
+	private static final ParameterizedTypeReference<ScimUser> USER_REF = new ParameterizedTypeReference<ScimUser>() {
+	};
+	
+	private static final ParameterizedTypeReference<String> STRING_REF = new ParameterizedTypeReference<String>() {
+	};
+	
+	private static final ParameterizedTypeReference<WrappedSearchResults<ScimUser>> USERS_REF = new ParameterizedTypeReference<WrappedSearchResults<ScimUser>>() {
+	};
 
 	public UaaUserOperationsImpl(UaaConnectionHelper helper) {
 		this.helper = helper;
@@ -46,7 +56,7 @@ public class UaaUserOperationsImpl implements UaaUserOperations {
 
 		user.setSchemas(SCHEMAS);
 
-		return helper.post("/Users", user, ScimUser.class);
+		return helper.post("/Users", user, USER_REF);
 	}
 
 	public ScimUser updateUser(ScimUser user) {
@@ -60,30 +70,30 @@ public class UaaUserOperationsImpl implements UaaUserOperations {
 
 		user.setPassword(null);
 
-		return helper.putScimObject("/Users/{id}", user, ScimUser.class, user.getId());
+		return helper.putScimObject("/Users/{id}", user, USER_REF, user.getId());
 	}
 
 	public void deleteUser(String userId) {
 		Assert.hasText(userId);
-		helper.delete("/Users/{id}", String.class, userId);
+		helper.delete("/Users/{id}", STRING_REF, userId);
 	}
 
 	public void changeUserPassword(String userId, String newPassword) {
 		Assert.hasText(userId);
 		Assert.hasText(newPassword);
 
-		helper.put("/Users/{id}/password", Collections.singletonMap("password", newPassword), String.class, userId);
+		helper.put("/Users/{id}/password", Collections.singletonMap("password", newPassword), STRING_REF, userId);
 	}
 
-	public ScimUsers getUsers(FilterRequest request) {
+	public SearchResults<ScimUser> getUsers(FilterRequest request) {
 		Assert.notNull(request);
 
-		return helper.get(helper.buildScimFilterUrl("/Users", request), ScimUsers.class);
+		return helper.get(helper.buildScimFilterUrl("/Users", request), USERS_REF);
 	}
 
 	public ScimUser getUserByName(String userName) {
 		FilterRequest request = new FilterRequestBuilder().equals("username", userName).build();
-		PagedResult<ScimUser> result = getUsers(request);
+		SearchResults<ScimUser> result = getUsers(request);
 
 		if (result != null && result.getResources() != null && result.getResources().size() == 1) {
 			return result.getResources().iterator().next();

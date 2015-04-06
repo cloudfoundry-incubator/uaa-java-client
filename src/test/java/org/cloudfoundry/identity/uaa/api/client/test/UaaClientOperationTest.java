@@ -21,9 +21,9 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 
 import org.cloudfoundry.identity.uaa.api.client.UaaClientOperations;
-import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
 import org.cloudfoundry.identity.uaa.api.common.model.UaaTokenGrantType;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -48,7 +48,7 @@ public class UaaClientOperationTest extends AbstractOperationTest {
 	public void testGetClients() throws Exception {
 		ignoreIfUaaNotRunning();
 		
-		PagedResult<BaseClientDetails> clients = operations.getClients(FilterRequestBuilder.showAll());
+		SearchResults<BaseClientDetails> clients = operations.getClients(FilterRequestBuilder.showAll());
 
 		assertEquals("Total Results wrong", 11, clients.getTotalResults());
 		assertEquals("Items Per Page wrong", 11, clients.getItemsPerPage());

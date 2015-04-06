@@ -21,7 +21,7 @@ import java.util.Collection;
 
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.api.group.UaaGroupOperations;
-import org.cloudfoundry.identity.uaa.api.group.model.ScimGroups;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.cloudfoundry.identity.uaa.scim.ScimGroup;
 import org.cloudfoundry.identity.uaa.scim.ScimGroupMember;
 import org.junit.BeforeClass;
@@ -44,7 +44,7 @@ public class UaaGroupOperationTest extends AbstractOperationTest {
 	@Test
 	public void testGroupRetrieval() {
 		ignoreIfUaaNotRunning();
-		ScimGroups groups = operations.getGroups(FilterRequestBuilder.showAll());
+		SearchResults<ScimGroup> groups = operations.getGroups(FilterRequestBuilder.showAll());
 
 		assertNotNull(groups);
 

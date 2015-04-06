@@ -13,8 +13,8 @@
  */
 package org.cloudfoundry.identity.uaa.api.client;
 
-import org.cloudfoundry.identity.uaa.api.common.model.PagedResult;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 
 /**
@@ -65,7 +65,7 @@ public interface UaaClientOperations {
 	 * @return the clients
 	 * @see org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder
 	 */
-	public PagedResult<BaseClientDetails> getClients(FilterRequest request);
+	public SearchResults<BaseClientDetails> getClients(FilterRequest request);
 
 	/**
 	 * Change a client's secret. Note that you MUST have the existing secret, as the APIs require it.

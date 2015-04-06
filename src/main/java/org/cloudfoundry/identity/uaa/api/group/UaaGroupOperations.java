@@ -14,8 +14,7 @@
 package org.cloudfoundry.identity.uaa.api.group;
 
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequest;
-import org.cloudfoundry.identity.uaa.api.group.model.ScimGroupExternalMembers;
-import org.cloudfoundry.identity.uaa.api.group.model.ScimGroups;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.cloudfoundry.identity.uaa.scim.ScimGroup;
 import org.cloudfoundry.identity.uaa.scim.ScimGroupExternalMember;
 
@@ -85,7 +84,7 @@ public interface UaaGroupOperations {
 	 * @return The page of groups.
 	 * @see org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder
 	 */
-	public ScimGroups getGroups(FilterRequest request);
+	public SearchResults<ScimGroup> getGroups(FilterRequest request);
 
 	/**
 	 * Create a mapping from an external LDAP group to an internal UAA group. Only effective when UAA is configured with
@@ -120,5 +119,5 @@ public interface UaaGroupOperations {
 	 * @return the list of group mappings
 	 * @see org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder
 	 */
-	public ScimGroupExternalMembers getGroupMappings(FilterRequest request);
+	public SearchResults<ScimGroupExternalMember> getGroupMappings(FilterRequest request);
 }
