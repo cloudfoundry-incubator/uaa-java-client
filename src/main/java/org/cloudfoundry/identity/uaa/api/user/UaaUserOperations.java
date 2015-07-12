@@ -39,7 +39,7 @@ public interface UaaUserOperations {
 	 * 
 	 * @param user the updated user
 	 * @return the user as returned from the UAA api
-	 * @see #changeUserPassword(String, String)
+	 * @see #changeUserPassword(String, String, String)
 	 */
 	public ScimUser updateUser(ScimUser user);
 
@@ -57,9 +57,10 @@ public interface UaaUserOperations {
 	 * <b>TODO</b>: Add a method to change the current user's password, if not in a client-credential-only scope
 	 * 
 	 * @param userId the user's id (not their username)
+	 * @param oldPassword the old password
 	 * @param newPassword the new password
 	 */
-	public void changeUserPassword(String userId, String newPassword);
+	public void changeUserPassword(String userId, String oldPassword, String newPassword);
 
 	/**
 	 * Looks up a user in the database by their name.

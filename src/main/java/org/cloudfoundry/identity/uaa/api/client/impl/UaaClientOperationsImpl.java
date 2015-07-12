@@ -16,6 +16,8 @@ package org.cloudfoundry.identity.uaa.api.client.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cloudfoundry.identity.uaa.api.client.UaaClientOperations;
 import org.cloudfoundry.identity.uaa.api.common.impl.UaaConnectionHelper;
 import org.cloudfoundry.identity.uaa.api.common.model.WrappedSearchResults;
@@ -28,18 +30,16 @@ import org.springframework.util.Assert;
 /**
  * @see UaaClientOperations
  * @author Josh Ghiloni
- *
  */
 public class UaaClientOperationsImpl implements UaaClientOperations {
 
-	private static final ParameterizedTypeReference<String> STRING_REF = new ParameterizedTypeReference<String>() {
-	};
+	private static final ParameterizedTypeReference<String> STRING_REF = new ParameterizedTypeReference<String>() {};
 
-	private static final ParameterizedTypeReference<BaseClientDetails> CLIENT_REF = new ParameterizedTypeReference<BaseClientDetails>() {
-	};
+	private static final ParameterizedTypeReference<BaseClientDetails> CLIENT_REF = new ParameterizedTypeReference<BaseClientDetails>() {};
 
-	private static final ParameterizedTypeReference<WrappedSearchResults<BaseClientDetails>> CLIENTS_REF = new ParameterizedTypeReference<WrappedSearchResults<BaseClientDetails>>() {
-	};
+	private static final ParameterizedTypeReference<WrappedSearchResults<BaseClientDetails>> CLIENTS_REF = new ParameterizedTypeReference<WrappedSearchResults<BaseClientDetails>>() {};
+
+	private static final Log log = LogFactory.getLog(UaaClientOperationsImpl.class);
 
 	private UaaConnectionHelper helper;
 
@@ -83,7 +83,9 @@ public class UaaClientOperationsImpl implements UaaClientOperations {
 		body.put("secret", newSecret);
 
 		String result = helper.put("/oauth/clients/{id}/secret", body, STRING_REF, clientId);
-		System.out.println(result);
+		if (log.isDebugEnabled()) {
+			log.debug(result);
+		}
 
 		return (result != null);
 	}
