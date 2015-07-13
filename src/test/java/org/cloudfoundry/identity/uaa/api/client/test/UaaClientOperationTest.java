@@ -13,52 +13,67 @@
  */
 package org.cloudfoundry.identity.uaa.api.client.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.cloudfoundry.identity.uaa.api.client.UaaClientOperations;
 import org.cloudfoundry.identity.uaa.api.common.model.UaaTokenGrantType;
 import org.cloudfoundry.identity.uaa.api.common.model.expr.FilterRequestBuilder;
 import org.cloudfoundry.identity.uaa.rest.SearchResults;
-import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 
 /**
  * @author Josh Ghiloni
- *
  */
 public class UaaClientOperationTest extends AbstractOperationTest {
 
-	private static UaaClientOperations operations;
+	@ClassRule public static UaaServerAvailable uaaServerAvailable = new UaaServerAvailable();
 
-	@BeforeClass
-	public static void setUp() throws Exception {
-		init();
-		
+	private UaaClientOperations operations;
+	private BaseClientDetails testClient;
+	private BaseClientDetails testClientDetails;
+
+	@Before
+	public void setup() throws Exception {
+
 		operations = getConnection().clientOperations();
+
+		try {
+			operations.delete("test");
+		} catch (Exception ignore) {}
+
+		testClientDetails = new BaseClientDetails();
+		testClientDetails.setClientId("test");
+		testClientDetails.setClientSecret("testsecret");
+		testClientDetails.setAccessTokenValiditySeconds(3600);
+		testClientDetails.setAuthorizedGrantTypes(Arrays.asList(UaaTokenGrantType.authorization_code.toString(),
+				UaaTokenGrantType.client_credentials.toString()));
+		testClientDetails.setRefreshTokenValiditySeconds(86400);
+		testClientDetails.setAuthorities(AuthorityUtils.createAuthorityList("uaa.resource", "clients.secret"));
+
+		testClient = operations.create(testClientDetails);
 	}
 
 	@Test
 	public void testGetClients() throws Exception {
-		ignoreIfUaaNotRunning();
-		
+
 		SearchResults<BaseClientDetails> clients = operations.getClients(FilterRequestBuilder.showAll());
 
-		assertEquals("Total Results wrong", 11, clients.getTotalResults());
-		assertEquals("Items Per Page wrong", 11, clients.getItemsPerPage());
-		assertEquals("Actual result count wrong", 11, clients.getResources().size());
+		assertEquals("Total Results wrong", 12, clients.getTotalResults()); // default 11 + test client 1 = 12 clients
+		assertEquals("Items Per Page wrong", 12, clients.getItemsPerPage());
+		assertEquals("Actual result count wrong", 12, clients.getResources().size());
 	}
 
 	@Test
 	public void testGetClient() throws Exception {
-		ignoreIfUaaNotRunning();
-		
+
 		BaseClientDetails client = operations.findById("app");
 
 		assertEquals("ID wrong", "app", client.getClientId());
@@ -67,64 +82,45 @@ public class UaaClientOperationTest extends AbstractOperationTest {
 
 	@Test
 	public void testCreateDelete() throws Exception {
-		ignoreIfUaaNotRunning();
-		
-		BaseClientDetails client = createClient();
 
-		BaseClientDetails checkClient = operations.findById(client.getClientId());
-		assertEquals(client.getClientId(), checkClient.getClientId());
+		BaseClientDetails checkClient = operations.findById(testClient.getClientId());
+		assertEquals(testClient.getClientId(), checkClient.getClientId());
 
-		operations.delete(client.getClientId());
+		operations.delete(checkClient.getClientId());
 	}
 
 	@Test
 	public void testUpdate() throws Exception {
-		ignoreIfUaaNotRunning();
-		
-		BaseClientDetails toUpdate = createClient();
 
-		try {
-			BaseClientDetails client = operations.findById(toUpdate.getClientId());
+		BaseClientDetails client = operations.findById(testClient.getClientId());
 
-			toUpdate.setScope(Arrays.asList("foo"));
-			BaseClientDetails updated = operations.update(toUpdate);
-			assertNotEquals(client.getScope(), updated.getScope());
-			assertEquals("foo", updated.getScope().iterator().next());
-		}
-		finally {
-			operations.delete(toUpdate.getClientId());
-		}
+		client.setScope(Arrays.asList("foo"));
+		BaseClientDetails updated = operations.update(client);
+
+		assertNotEquals(testClient.getScope(), updated.getScope());
+		assertEquals(client.getScope().iterator().next(), updated.getScope().iterator().next());
 	}
 
 	@Test
-	public void testChangePassword() throws Exception {
-		ignoreIfUaaNotRunning();
-		
-		BaseClientDetails client = operations.findById("admin");
+	public void testChangeClientSecretForTestUser() throws Exception {
 
-		operations.changeClientSecret(client.getClientId(), "adminsecret", "newSecret");
+		ClientCredentialsResourceDetails testUserCredentials = getDefaultClientCredentials();
+		testUserCredentials.setClientId(testClientDetails.getClientId());
+		testUserCredentials.setClientSecret(testClientDetails.getClientSecret());
+		testUserCredentials.setScope(new ArrayList<String>(testClientDetails.getScope()));
+
+		UaaClientOperations clientOperations = getConnection(testUserCredentials).clientOperations();
+
+		String clientSecret = testClientDetails.getClientSecret();
+
+		assertTrue("Could not change password",
+				clientOperations.changeClientSecret(testClientDetails.getClientId(), clientSecret, "newSecret"));
 
 		try {
-			operations.changeClientSecret(client.getClientId(), "adminsecret", "shouldfail");
+			clientOperations.changeClientSecret(testClientDetails.getClientId(), clientSecret, "shouldfail");
 			fail("First password change failed");
+		} catch (Exception expected) {
+			expected.toString(); // to avoid empty catch-block.
 		}
-		catch (Exception e) {
-		}
-		finally {
-			operations.changeClientSecret(client.getClientId(), "newSecret", "adminsecret");
-		}
-	}
-
-	private BaseClientDetails createClient() {
-		BaseClientDetails client = new BaseClientDetails();
-		client.setClientId("test");
-		client.setClientSecret("testsecret");
-		client.setAccessTokenValiditySeconds(3600);
-		client.setAuthorizedGrantTypes(Arrays.asList(UaaTokenGrantType.authorization_code.toString(),
-				UaaTokenGrantType.client_credentials.toString()));
-		client.setRefreshTokenValiditySeconds(86400);
-		client.setAuthorities(AuthorityUtils.createAuthorityList("uaa.resource"));
-
-		return operations.create(client);
 	}
 }

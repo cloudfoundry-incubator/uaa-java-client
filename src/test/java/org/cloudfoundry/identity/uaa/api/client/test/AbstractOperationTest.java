@@ -13,10 +13,6 @@
  */
 package org.cloudfoundry.identity.uaa.api.client.test;
 
-import static org.junit.Assume.assumeTrue;
-
-import java.io.IOException;
-import java.net.Socket;
 import java.net.URL;
 
 import org.cloudfoundry.identity.uaa.api.UaaConnectionFactory;
@@ -26,43 +22,27 @@ import org.springframework.security.oauth2.common.AuthenticationScheme;
 
 /**
  * @author Josh Ghiloni
- *
  */
 public abstract class AbstractOperationTest {
-	private static boolean uaaRunning;
 
-	private static UaaConnection connection;
+	private static final String UAA_BASE_URL = "http://localhost:8080/uaa";
 
-	protected static void init() throws Exception {
-		try {
-			Socket test = new Socket("localhost", 8080);
-			uaaRunning = true;
-			test.close();
-		}
-		catch (IOException e) {
-			System.err.println("UAA is not running, skip these tests");
-			uaaRunning = false;
-			return;
-		}
-		finally {
-			String baseUrl = "http://localhost:8080/uaa";
-			
-			ClientCredentialsResourceDetails credentials = new ClientCredentialsResourceDetails();
-			credentials.setAccessTokenUri(baseUrl + "/oauth/token");
-//			credentials.setAuthenticationScheme(AuthenticationScheme.header);
-			credentials.setClientAuthenticationScheme(AuthenticationScheme.header);
-			credentials.setClientId("admin");
-			credentials.setClientSecret("adminsecret");
-			
-			connection = UaaConnectionFactory.getConnection(new URL(baseUrl), credentials);
-		}
+	protected ClientCredentialsResourceDetails getDefaultClientCredentials() {
+
+		ClientCredentialsResourceDetails credentials = new ClientCredentialsResourceDetails();
+		credentials.setAccessTokenUri(UAA_BASE_URL + "/oauth/token");
+		credentials.setClientAuthenticationScheme(AuthenticationScheme.header);
+		credentials.setClientId("admin");
+		credentials.setClientSecret("adminsecret");
+
+		return credentials;
 	}
 
-	protected static void ignoreIfUaaNotRunning() {
-		assumeTrue(uaaRunning);
+	protected UaaConnection getConnection() throws Exception {
+		return getConnection(getDefaultClientCredentials());
 	}
 
-	protected static UaaConnection getConnection() {
-		return connection;
+	protected UaaConnection getConnection(ClientCredentialsResourceDetails clientCredentials) throws Exception {
+		return UaaConnectionFactory.getConnection(new URL(UAA_BASE_URL), clientCredentials);
 	}
 }

@@ -13,9 +13,10 @@
  */
 package org.cloudfoundry.identity.uaa.api.user.impl;
 
-import static org.cloudfoundry.identity.uaa.scim.ScimCore.SCHEMAS;
+import static org.cloudfoundry.identity.uaa.scim.ScimCore.*;
 
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.cloudfoundry.identity.uaa.api.common.impl.UaaConnectionHelper;
 import org.cloudfoundry.identity.uaa.api.common.model.WrappedSearchResults;
@@ -32,6 +33,7 @@ import org.springframework.util.CollectionUtils;
  * @see UaaUserOperations
  * 
  * @author Josh Ghiloni
+ * @author Thomas Darimont
  *
  */
 public class UaaUserOperationsImpl implements UaaUserOperations {
@@ -78,11 +80,16 @@ public class UaaUserOperationsImpl implements UaaUserOperations {
 		helper.delete("/Users/{id}", STRING_REF, userId);
 	}
 
-	public void changeUserPassword(String userId, String newPassword) {
+	public void changeUserPassword(String userId, String oldPassword, String newPassword) {
 		Assert.hasText(userId);
+		Assert.hasText(oldPassword);
 		Assert.hasText(newPassword);
 
-		helper.put("/Users/{id}/password", Collections.singletonMap("password", newPassword), STRING_REF, userId);
+		Map<String, String> passwordChange = new HashMap<String, String>();
+		passwordChange.put("password", newPassword);
+		passwordChange.put("oldPassword", oldPassword);
+
+		helper.put("/Users/{id}/password", passwordChange, STRING_REF, userId);
 	}
 
 	public SearchResults<ScimUser> getUsers(FilterRequest request) {

@@ -13,9 +13,7 @@
  */
 package org.cloudfoundry.identity.uaa.api.client.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.Collection;
 
@@ -24,7 +22,8 @@ import org.cloudfoundry.identity.uaa.api.group.UaaGroupOperations;
 import org.cloudfoundry.identity.uaa.rest.SearchResults;
 import org.cloudfoundry.identity.uaa.scim.ScimGroup;
 import org.cloudfoundry.identity.uaa.scim.ScimGroupMember;
-import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 /**
@@ -32,18 +31,19 @@ import org.junit.Test;
  *
  */
 public class UaaGroupOperationTest extends AbstractOperationTest {
-	private static UaaGroupOperations operations;
+	
+	@ClassRule public static UaaServerAvailable uaaServerAvailable = new UaaServerAvailable();
+	
+	private UaaGroupOperations operations;
 
-	@BeforeClass
-	public static void setUp() throws Exception {
-		init();
-
+	@Before
+	public void setUp() throws Exception {
 		operations = getConnection().groupOperations();
 	}
 
 	@Test
 	public void testGroupRetrieval() {
-		ignoreIfUaaNotRunning();
+		
 		SearchResults<ScimGroup> groups = operations.getGroups(FilterRequestBuilder.showAll());
 
 		assertNotNull(groups);
@@ -56,7 +56,6 @@ public class UaaGroupOperationTest extends AbstractOperationTest {
 
 	@Test
 	public void testGroupCreateUpdateDelete() {
-		ignoreIfUaaNotRunning();
 		
 		String id = "marissa";
 
