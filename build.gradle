@@ -9,7 +9,9 @@ description = """Java UAA API Client"""
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
-
+task wrapper(type: Wrapper) {
+	gradleVersion = "2.5"
+}
 
 repositories {
 	mavenCentral()
