@@ -92,7 +92,7 @@ public class UaaConnectionHelper {
 	 * @param responseType the object type to be returned
 	 * @param uriVariables any uri variables
 	 * @return the response body
-	 * @see #exchange(HttpMethod, Object, String, Class, Object...)
+	 * @see #exchange(HttpMethod, Object, String, ParameterizedTypeReference, Object...)
 	 */
 	public <ResponseType> ResponseType get(String uri, ParameterizedTypeReference<ResponseType> responseType,
 			Object... uriVariables) {
@@ -106,7 +106,7 @@ public class UaaConnectionHelper {
 	 * @param responseType the object type to be returned
 	 * @param uriVariables any uri variables
 	 * @return the response body
-	 * @see #exchange(HttpMethod, Object, String, Class, Object...)
+	 * @see #exchange(HttpMethod, Object, String, ParameterizedTypeReference, Object...)
 	 */
 	public <ResponseType> ResponseType delete(String uri, ParameterizedTypeReference<ResponseType> responseType,
 			Object... uriVariables) {
@@ -121,7 +121,7 @@ public class UaaConnectionHelper {
 	 * @param responseType the object type to be returned
 	 * @param uriVariables any uri variables
 	 * @return the response body
-	 * @see #exchange(HttpMethod, Object, String, Class, Object...)
+	 * @see #exchange(HttpMethod, Object, String, ParameterizedTypeReference, Object...)
 	 */
 	public <RequestType, ResponseType> ResponseType post(String uri, RequestType body,
 			ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {
@@ -136,7 +136,7 @@ public class UaaConnectionHelper {
 	 * @param responseType the object type to be returned
 	 * @param uriVariables any uri variables
 	 * @return the response body
-	 * @see #exchange(HttpMethod, Object, String, Class, Object...)
+	 * @see #exchange(HttpMethod, Object, String, ParameterizedTypeReference, Object...)
 	 */
 	public <RequestType, ResponseType> ResponseType put(String uri, RequestType body,
 			ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {
@@ -152,7 +152,7 @@ public class UaaConnectionHelper {
 	 * @param responseType the object type to be returned
 	 * @param uriVariables any uri variables
 	 * @return the response body
-	 * @see #exchange(HttpMethod, HttpHeaders, Object, String, Class, Object...)
+	 * @see #exchange(HttpMethod, HttpHeaders, Object, String, ParameterizedTypeReference, Object...)
 	 */
 	public <RequestType extends ScimCore, ResponseType> ResponseType putScimObject(String uri, RequestType body,
 			ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {
@@ -171,7 +171,7 @@ public class UaaConnectionHelper {
 	 * {@link FilterRequestBuilder} builder = new FilterRequestBuilder();
 	 * builder.equals("username", userName).attributes("id");
 	 * 
-	 * {@link org.cloudfoundry.identity.uaa.api.user.model.ScimUsers} users = operations.getUsers(builder.build());
+	 * SearchResults&lt;ScimUser&gt; users = operations.getUsers(builder.build());
 	 * 
 	 * return users.getResources().iterator().next().getId();
 	 * </pre>
@@ -216,7 +216,7 @@ public class UaaConnectionHelper {
 	 * @param responseType the object type to be returned
 	 * @param uriVariables any uri variables
 	 * @return the response body
-	 * @see #exchange(HttpMethod, HttpHeaders, Object, String, Class, Object...)
+	 * @see #exchange(HttpMethod, HttpHeaders, Object, String, ParameterizedTypeReference, Object...)
 	 */
 	private <RequestType, ResponseType> ResponseType exchange(HttpMethod method, RequestType body, String uri,
 			ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {
@@ -232,7 +232,7 @@ public class UaaConnectionHelper {
 	 * @param responseType the object type to be returned
 	 * @param uriVariables any uri variables
 	 * @return the response body
-	 * @see org.springframework.web.client.RestTemplate#exchange(String, HttpMethod, HttpEntity, Class, Object...)
+	 * @see org.springframework.web.client.RestTemplate#exchange(String, HttpMethod, HttpEntity, ParameterizedTypeReference, Object...)
 	 */
 	private <RequestType, ResponseType> ResponseType exchange(HttpMethod method, HttpHeaders headers, RequestType body,
 			String uri, ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {

@@ -36,7 +36,7 @@ public final class UaaConnectionFactory {
 	 * 
 	 * @param uaaUrl the base {@link URL} of the UAA server. May have a path prefix (for example,
 	 * <code>http://localhost:8080/uaa</code>)
-	 * @param credentials the {@link UaaCredentials} representing the current user. May be client-only
+	 * @param credentials the {@link OAuth2ProtectedResourceDetails} representing the current user. May be client-only
 	 * @return the connection entry point
 	 */
 	public static UaaConnection getConnection(URL uaaUrl, OAuth2ProtectedResourceDetails credentials) {

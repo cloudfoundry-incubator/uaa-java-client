@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * @see ScimGroupOperations
+ * @see UaaGroupOperations
  * 
  * @author Josh Ghiloni
  */

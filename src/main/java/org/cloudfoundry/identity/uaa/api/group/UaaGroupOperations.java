@@ -54,8 +54,6 @@ public interface UaaGroupOperations {
 	 * @param groupId the group id
 	 * @param memberName the member's username (will be converted to ID)
 	 * @return the group with the member in it
-	 * @see org.cloudfoundry.identity.uaa.api.user.model.UaaUser#getUserName()
-	 * @see org.cloudfoundry.identity.uaa.api.user.UaaUserOperations#getUserByName(String)
 	 */
 	public ScimGroup addMember(String groupId, String memberName);
 
@@ -65,8 +63,6 @@ public interface UaaGroupOperations {
 	 * @param groupId the group id
 	 * @param memberName the member's username (will be converted to ID)
 	 * @return the group without the member in it
-	 * @see org.cloudfoundry.identity.uaa.api.user.model.UaaUser#getUserName()
-	 * @see org.cloudfoundry.identity.uaa.api.user.UaaUserOperations#getUserByName(String)
 	 */
 	public ScimGroup deleteMember(String groupId, String memberName);
 
