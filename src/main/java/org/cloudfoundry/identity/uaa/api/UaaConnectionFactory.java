@@ -41,6 +41,6 @@ public final class UaaConnectionFactory {
 	 */
 	public static UaaConnection getConnection(URL uaaUrl, OAuth2ProtectedResourceDetails credentials) {
 		UaaConnectionHelper helper = new UaaConnectionHelper(uaaUrl, credentials);
-		return new UaaConnectionImpl(helper);
+		return new UaaConnectionImpl(uaaUrl, helper);
 	}
 }

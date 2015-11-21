@@ -109,7 +109,7 @@ public class UaaClientOperationTest extends AbstractOperationTest {
 		testUserCredentials.setClientSecret(testClientDetails.getClientSecret());
 		testUserCredentials.setScope(new ArrayList<String>(testClientDetails.getScope()));
 
-		UaaClientOperations clientOperations = getConnection(testUserCredentials).clientOperations();
+		UaaClientOperations clientOperations = getConnection().clientOperations();
 
 		String clientSecret = testClientDetails.getClientSecret();
 

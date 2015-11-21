@@ -40,6 +40,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.client.token.AccessTokenProvider;
 import org.springframework.security.oauth2.client.token.AccessTokenProviderChain;
@@ -238,7 +240,7 @@ public class UaaConnectionHelper {
 			String uri, ParameterizedTypeReference<ResponseType> responseType, Object... uriVariables) {
 		getHeaders(headers);
 
-		RestTemplate template = new RestTemplate();
+		OAuth2RestTemplate template = new OAuth2RestTemplate(creds, new DefaultOAuth2ClientContext());
 		template.setInterceptors(LoggerInterceptor.INTERCEPTOR);
 
 		HttpEntity<RequestType> requestEntity = null;
@@ -332,8 +334,8 @@ public class UaaConnectionHelper {
 	 * @param headers
 	 */
 	private void getHeaders(HttpHeaders headers) {
-		OAuth2AccessToken token = getAccessToken();
-		headers.add("Authorization", token.getTokenType() + " " + token.getValue());
+//		OAuth2AccessToken token = getAccessToken();
+//		headers.add("Authorization", token.getTokenType() + " " + token.getValue());
 
 		if (headers.getContentType() == null) {
 			headers.setContentType(MediaType.APPLICATION_JSON);

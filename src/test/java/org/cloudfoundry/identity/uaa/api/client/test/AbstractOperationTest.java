@@ -19,13 +19,14 @@ import org.cloudfoundry.identity.uaa.api.UaaConnectionFactory;
 import org.cloudfoundry.identity.uaa.api.common.UaaConnection;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.security.oauth2.common.AuthenticationScheme;
+import org.springframework.util.Assert;
 
 /**
  * @author Josh Ghiloni
  */
 public abstract class AbstractOperationTest {
 
-	private static final String UAA_BASE_URL = "http://localhost:8080/uaa";
+	public static final String UAA_BASE_URL = "http://localhost:8080/uaa";
 
 	protected ClientCredentialsResourceDetails getDefaultClientCredentials() {
 
@@ -39,10 +40,17 @@ public abstract class AbstractOperationTest {
 	}
 
 	protected UaaConnection getConnection() throws Exception {
-		return getConnection(getDefaultClientCredentials());
+		return getConnection(new URL(UAA_BASE_URL), getDefaultClientCredentials());
 	}
 
-	protected UaaConnection getConnection(ClientCredentialsResourceDetails clientCredentials) throws Exception {
-		return UaaConnectionFactory.getConnection(new URL(UAA_BASE_URL), clientCredentials);
+	protected UaaConnection getConnection(URL target) throws Exception {
+		Assert.notNull(target);
+		return getConnection(target, getDefaultClientCredentials());
+	}
+
+	protected UaaConnection getConnection(URL target, ClientCredentialsResourceDetails clientCredentials) throws Exception {
+		Assert.notNull(target);
+		Assert.notNull(clientCredentials);
+		return UaaConnectionFactory.getConnection(target, clientCredentials);
 	}
 }

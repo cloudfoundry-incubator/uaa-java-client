@@ -15,7 +15,11 @@ package org.cloudfoundry.identity.uaa.api.common;
 
 import org.cloudfoundry.identity.uaa.api.client.UaaClientOperations;
 import org.cloudfoundry.identity.uaa.api.group.UaaGroupOperations;
+import org.cloudfoundry.identity.uaa.api.token.UaaTokenOperations;
 import org.cloudfoundry.identity.uaa.api.user.UaaUserOperations;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
+
+import java.net.URI;
 
 /**
  * A collection of objects to access different parts of the API
@@ -38,4 +42,12 @@ public interface UaaConnection {
 	 * @return an entry point for user APIs
 	 */
 	public UaaUserOperations userOperations();
+
+	/**
+	 * @return an entry point for user APIs
+	 */
+	UaaTokenOperations tokenOperations();
+
+	ClientCredentialsResourceDetails newClientCredentialsResourceDetails();
+
 }
